@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+.canvas-grid {
+  background-color: #090d16;
+  background-image: radial-gradient(circle, #1e293b 1.25px, transparent 1.25px);
+  background-size: 24px 24px;
+}
+
+.snap-pulse {
+  animation: pulseRing 0.9s infinite ease-in-out;
+}
+
+@keyframes pulseRing {
+  0%, 100% {
+    stroke-opacity: 0.95;
+    stroke-width: 3;
+  }
+  50% {
+    stroke-opacity: 0.4;
+    stroke-width: 6;
+  }
+}

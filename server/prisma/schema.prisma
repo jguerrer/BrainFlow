@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Local SQLite file to start with zero DB setup.
+// Upgrade path: change provider to "postgresql" (or "mysql") and update DATABASE_URL in .env.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id        Int               @id @default(autoincrement())
+  name      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  resources ProjectResource[]
+  ideas     Idea[]
+}
+
+model ProjectResource {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Idea {
+  id          Int              @id @default(autoincrement())
+  projectId   Int
+  name        String
+  description String           @default("")
+  lastAccess  DateTime         @default(now())
+  itemCount   Int              @default(0)
+  complexity  String           @default("Low")
+  isStashed   Boolean          @default(false)
+  zoom        Float            @default(1)
+  panX        Float            @default(0)
+  panY        Float            @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  nodes       IdeaNode[]
+  connections IdeaConnection[]
+}
+
+model IdeaNode {
+  id                  Int              @id @default(autoincrement())
+  ideaId              Int
+  label               String
+  description         String           @default("")
+  imageUrl            String           @default("")
+  x                   Float
+  y                   Float
+  width               Float            @default(156)
+  height              Float            @default(68)
+  color               String           @default("#3b82f6")
+  actions             Json
+  inputPort           Json?
+  outputPort          Json?
+  idea                Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  outgoingConnections IdeaConnection[] @relation("FromNode")
+  incomingConnections IdeaConnection[] @relation("ToNode")
+}
+
+model IdeaConnection {
+  id            Int      @id @default(autoincrement())
+  ideaId        Int
+  fromNodeId    Int
+  toNodeId      Int
+  fromSide      String   @default("right")
+  toSide        String   @default("left")
+  bidirectional Boolean  @default(false)
+  label         String   @default("connects")
+  labelOffsetX Float    @default(0)
+  labelOffsetY Float    @default(0)
+  labelWidth   Float    @default(96)
+  labelHeight  Float    @default(24)
+  color        String   @default("#3b82f6")
+  properties Json
+  actions    Json
+  idea       Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  fromNode   IdeaNode @relation("FromNode", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode     IdeaNode @relation("ToNode", fields: [toNodeId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceState {
+  id              Int      @id @default(1)
+  lastProjectId   Int?
+  lastIdeaId      Int?
+  cardinalityMode String   @default("degree")
+  updatedAt       DateTime @updatedAt
+}
